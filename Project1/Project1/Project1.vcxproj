@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="LinkedList.c" />
+    <ClCompile Include="project_p2_header.h" />
     <ClCompile Include="project_pt1.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

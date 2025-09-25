@@ -1,34 +1,42 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <string.h>
+#include "project_p2_header.h"
 
 #define MAX_INPUT 256
 
+struct LinkedList history; // global history list
+
 void processCommand(char* input) {
+    char inputCopy[MAX_INPUT];
+    strcpy(inputCopy, input);
+
     char* token = strtok(input, " \t\n"); // first word
     if (token == NULL) return;
 
     if (strcmp(token, "upload") == 0) {
         char* local = strtok(NULL, " \t\n");
         char* remote = strtok(NULL, " \t\n");
-        if (!local || !remote) {
+        if (!local || !remote || strtok(NULL, " \t\n") {
             printf("Syntax error: upload <local filename> <remote filename>\n");
         }else if (strtok(NULL, " \t\n") != NULL) {
             printf("Syntax error: upload <local filename> <remote filename>\n");
         }else {
             printf("Valid command: upload\n");
+            addNode(&history, inputCopy);
         }
     }
     else if (strcmp(token, "download") == 0) {
         char* remote = strtok(NULL, " \t\n");
         char* local = strtok(NULL, " \t\n");
-        if (!remote || !local) {
+        if (!remote || !local || strtok(NULL, " \t\n") {
             printf("Syntax error: download <remote filename> <local filename>\n");
         }
         else if (strtok(NULL, " \t\n") != NULL) {
             printf("Syntax error: download <remote filename> <local filename>\n");
         }else {
             printf("Valid command: download\n");
+            addNode(&history, inputCopy);
         }
     }
     else if (strcmp(token, "delete") == 0) {
@@ -44,6 +52,7 @@ void processCommand(char* input) {
         }
         else {
             printf("Valid command: delete\n");
+            addNode(&history, inputCopy);
         }
     }
     else if (strcmp(token, "change") == 0) {
@@ -57,6 +66,7 @@ void processCommand(char* input) {
         }
         else {
             printf("Valid command: change\n");
+            addNode(&history, inputCopy);
         }
     }
     else if (strcmp(token, "show") == 0) {
@@ -76,6 +86,7 @@ void processCommand(char* input) {
         }
         else {
             printf("Valid command: show\n");
+            addNode(&history, inputCopy);
         }
     }
     else if (strcmp(token, "history") == 0 ||
@@ -86,6 +97,8 @@ void processCommand(char* input) {
         }
         else {
             printf("Valid command: %s\n", token);
+            printList(history);     //print before adding
+            addNode(&history, inputCopy);
         }
     }
     else {
