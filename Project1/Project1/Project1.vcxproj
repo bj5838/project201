@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="project_p2_header.c" />
     <ClCompile Include="project_pt1.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
