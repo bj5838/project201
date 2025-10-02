@@ -18,10 +18,7 @@
     <ClCompile Include="project_pt1.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="project_p2_header.h">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="LinkedList.c">
+    <ClCompile Include="project_p2_header.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
