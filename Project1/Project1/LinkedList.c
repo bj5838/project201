@@ -10,7 +10,15 @@ void initialize(struct LinkledList* list) {
 
 void addNode(struct LinkedList* list, char* command) {
 	struct node* newNode = (struct node*)malloc(sizeof(struct node));
+	if (!newNode) return;
+
 	strcpy(newNode->name, command);
+	if (list->head) {
+		computeHash(command, list->head->hash, newNode->hash);
+	}
+	else {
+		computeHash(command, NULL, newNode->hash);
+	}
 	newNode->next = list->head;		//add at front
 	list->head = newNode;
 	list->size++;
