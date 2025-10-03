@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 #include "project_p2_header.h"
 
 void computeHash(char* str, unsigned char* prevHash, unsigned char* outHash) {

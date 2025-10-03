@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include "project_p2_header.h"
-#include "LinkedList.c"
 #define MAX_INPUT 256
 
 struct LinkedList history; // global history list

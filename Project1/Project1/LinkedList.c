@@ -4,7 +4,7 @@
 #include "project_p2_header.h"
 
 
-void initialize(struct LinkledList* list) {
+void initialize(struct LinkedList* list) {
 	list->size = 0;
 	list->head = NULL;
 }
@@ -47,7 +47,7 @@ void validateList(struct LinkedList* list) {
 	struct node* curr = list->head;
 	while (curr && curr->next) {
 		unsigned char recomputed[HASH_SIZE];
-		computeHash(curr->next->name, curr-- > hash, recomputed);
+		computeHash(curr->next->name, curr->hash, recomputed);
 
 		if (!compareHash(curr->next->hash, recomputed)) {
 			printf("Node changed", curr->next->name);
