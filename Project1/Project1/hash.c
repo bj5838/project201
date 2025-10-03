@@ -5,6 +5,15 @@ void computeHash(char* str, unsigned char* prevHash, unsigned char* outHash) {
 	unsigned char temp[HASH_SIZE];
 	memset(temp, 0, HASH_SIZE);
 
+	for (int i = 0; i < HASH_SIZE; i++) {
+		if (prevHash != NULL) {
+			temp[i] = prevHash[i];
+		}
+		else {
+			temp[i] = (unsigned char)(170 + i);
+		}
+	}
+
 	for (int i = 0; str[i] != '\0'; i++) {
 		unsigned char c = (unsigned char)str[i];
 		int j = i % HASH_SIZE;
@@ -12,7 +21,7 @@ void computeHash(char* str, unsigned char* prevHash, unsigned char* outHash) {
 		temp[j] ^= (c << (i % 3));
 		temp[j] |= (c >> 2);
 		temp[j] = ~temp[j];
-		temp[j] &= 0xFF;
+		temp[j] &= 255;
 	}
 
 	for (int i = 0; i < HASH_SIZE; i++) {

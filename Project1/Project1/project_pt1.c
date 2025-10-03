@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "project_p2_header.h"
-
+#include "LinkedList.c"
 #define MAX_INPUT 256
 
 struct LinkedList history; // global history list
@@ -17,7 +17,7 @@ void processCommand(char* input) {
     if (strcmp(token, "upload") == 0) {
         char* local = strtok(NULL, " \t\n");
         char* remote = strtok(NULL, " \t\n");
-        if (!local || !remote || strtok(NULL, " \t\n") {
+        if (!local || !remote || strtok(NULL, " \t\n")) {
             printf("Syntax error: upload <local filename> <remote filename>\n");
         }else if (strtok(NULL, " \t\n") != NULL) {
             printf("Syntax error: upload <local filename> <remote filename>\n");
@@ -29,7 +29,7 @@ void processCommand(char* input) {
     else if (strcmp(token, "download") == 0) {
         char* remote = strtok(NULL, " \t\n");
         char* local = strtok(NULL, " \t\n");
-        if (!remote || !local || strtok(NULL, " \t\n") {
+        if (!remote || !local || strtok(NULL, " \t\n")) {
             printf("Syntax error: download <remote filename> <local filename>\n");
         }
         else if (strtok(NULL, " \t\n") != NULL) {
@@ -108,6 +108,8 @@ void processCommand(char* input) {
 
 int main() {
     char input[MAX_INPUT];
+
+    initialize(&history);
 
     printf("Welcome to FML Parser. Type commands below.\n");
     while (1) {
