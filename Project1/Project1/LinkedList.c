@@ -51,10 +51,12 @@ void validateList(struct LinkedList* list) {
 		computeHash(curr->next->name, curr->hash, recomputed);
 
 		if (!compareHash(curr->next->hash, recomputed)) {
-			printf("Node changed: %s\n", curr->next->name);
+			printf("Node changed at: %s\n", curr->next->name);
+			return 0;
 		}
 		curr = curr->next;
 	}
 
 	printf("Validatation complete.\n");
+	return 1;
 }

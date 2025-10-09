@@ -88,17 +88,32 @@ void processCommand(char* input) {
             addNode(&history, inputCopy);
         }
     }
-    else if (strcmp(token, "history") == 0 ||
-        strcmp(token, "validate") == 0 ||
-        strcmp(token, "quit") == 0) {
+    else if (strcmp(token, "history") == 0) {
         if (strtok(NULL, " \t\n") != NULL) {
-            printf("Syntax error: '%s' takes no parameters.\n", token);
+            printf("Syntax error: 'history' takes no parameters.\n", token);
         }
         else {
-            printf("Valid command: %s\n", token);
+            printf("Valid command: history\n", token);
+            validateList(&history);
             printList(history);     //print before adding
             addNode(&history, inputCopy);
         }
+    }
+    else if (strcmp(token, "validate") == 0) {
+        if (strtok(NULL, " \t\n") != NULL) {
+            printf("Syntax error: 'validate' takes no parameters.\n", token);
+        }
+        else {
+            printf("Valid command: validate\n", token);
+            validateList(&history);
+            addNode(&history, inputCopy);
+        }
+    }
+    else if(strcmp(token, "quit") == 0) {
+        printf("Exiting Program.\n");
+        exit(0);
+        
+        
     }
     else {
         printf("%s is not a valid FML command.\n", token);
