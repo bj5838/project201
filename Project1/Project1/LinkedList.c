@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -28,13 +29,13 @@ void addNode(struct LinkedList* list, char* command) {
 void printList(struct LinkedList list) {
 	struct node* temp = list.head;
 	if (temp == NULL) {
-		printf("Historyt is empty.\n");
+		printf("History is empty.\n");
 		return;
 	}
 
 	int i = 0;
-	while (temp!= NULL) {
-		printf("%s | Hash: ",i,  temp->name);
+	while (temp != NULL) {
+		printf("[%d] %s | Hash: ", i, temp->name);
 		printHash(temp->hash);
 		printf("\n");
 		temp = temp->next;
@@ -50,9 +51,10 @@ void validateList(struct LinkedList* list) {
 		computeHash(curr->next->name, curr->hash, recomputed);
 
 		if (!compareHash(curr->next->hash, recomputed)) {
-			printf("Node changed", curr->next->name);
+			printf("Node changed: %s\n", curr->next->name);
 		}
 		curr = curr->next;
 	}
 
+	printf("Validatation complete.\n");
 }

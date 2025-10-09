@@ -24,5 +24,8 @@
     <ClCompile Include="hash.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="LinkedList.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
