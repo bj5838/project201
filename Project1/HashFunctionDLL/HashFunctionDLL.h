@@ -9,8 +9,9 @@
 #include <windows.h>
 
 #define HASH_SIZE 8
+
 extern "C" {
-	HASH_API void computeHash(char* str, char* prevHash, char* outHash);
-	HASH_API void printHash(char* hash);
-	HASH_API int compareHash(char* hash1, char* hash2);
+    HASH_API void computeHash(char* str, unsigned char* prevHash, unsigned char* outHash);
+    HASH_API void printHash(unsigned char* hash);
+    HASH_API int compareHash(unsigned char* hash1, unsigned char* hash2);
 }

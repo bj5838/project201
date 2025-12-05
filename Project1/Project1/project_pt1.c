@@ -1,27 +1,27 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <string.h>
-#include <windows.h>  // Add this for DLL loading
+#include <windows.h>
 #include "project_p2_header.h"
 #define MAX_INPUT 256
 
-// Function pointer types for DLL functions
-typedef void (*ComputeHashFunc)(char*, char*, char*);
-typedef void (*PrintHashFunc)(char*);
-typedef int (*CompareHashFunc)(char*, char*);
+// Function pointer types for DLL functions - use correct types
+typedef void (*ComputeHashFunc)(char*, unsigned char*, unsigned char*);
+typedef void (*PrintHashFunc)(unsigned char*);
+typedef int (*CompareHashFunc)(unsigned char*, unsigned char*);
 
-// Global function pointers
-ComputeHashFunc computeHash = NULL;
-PrintHashFunc printHash = NULL;
-CompareHashFunc compareHash = NULL;
+// Global function pointers - use different names
+ComputeHashFunc pComputeHash = NULL;
+PrintHashFunc pPrintHash = NULL;
+CompareHashFunc pCompareHash = NULL;
 
 // DLL handle
 HMODULE hashDllHandle = NULL;
 
 // Function to load the DLL
 int loadHashDLL() {
-    // Try to load the DLL
-    hashDllHandle = LoadLibrary("HashFunctionDLL.dll");
+    // Try to load the DLL - use TEXT macro for Unicode compatibility
+    hashDllHandle = LoadLibrary(TEXT("HashFunctionDLL.dll"));
 
     if (hashDllHandle == NULL) {
         DWORD error = GetLastError();
@@ -31,11 +31,11 @@ int loadHashDLL() {
     }
 
     // Get function addresses
-    computeHash = (ComputeHashFunc)GetProcAddress(hashDllHandle, "computeHash");
-    printHash = (PrintHashFunc)GetProcAddress(hashDllHandle, "printHash");
-    compareHash = (CompareHashFunc)GetProcAddress(hashDllHandle, "compareHash");
+    pComputeHash = (ComputeHashFunc)GetProcAddress(hashDllHandle, "computeHash");
+    pPrintHash = (PrintHashFunc)GetProcAddress(hashDllHandle, "printHash");
+    pCompareHash = (CompareHashFunc)GetProcAddress(hashDllHandle, "compareHash");
 
-    if (computeHash == NULL || printHash == NULL || compareHash == NULL) {
+    if (pComputeHash == NULL || pPrintHash == NULL || pCompareHash == NULL) {
         printf("Error: Failed to find required functions in HashFunctionDLL.dll\n");
         FreeLibrary(hashDllHandle);
         hashDllHandle = NULL;
@@ -58,9 +58,9 @@ void unloadHashDLL() {
 struct LinkedList history; // global history list
 
 // Wrapper functions that use the DLL
-void computeHashWrapper(char* str, char* prevHash, char* outHash) {
-    if (computeHash != NULL) {
-        computeHash(str, prevHash, outHash);
+void computeHashWrapper(char* str, unsigned char* prevHash, unsigned char* outHash) {
+    if (pComputeHash != NULL) {
+        pComputeHash(str, prevHash, outHash);
     }
     else {
         printf("Error: Hash function not available!\n");
@@ -68,18 +68,18 @@ void computeHashWrapper(char* str, char* prevHash, char* outHash) {
     }
 }
 
-void printHashWrapper(char* hash) {
-    if (printHash != NULL) {
-        printHash(hash);
+void printHashWrapper(unsigned char* hash) {
+    if (pPrintHash != NULL) {
+        pPrintHash(hash);
     }
     else {
         printf("Error: Print hash function not available!\n");
     }
 }
 
-int compareHashWrapper(char* h1, char* h2) {
-    if (compareHash != NULL) {
-        return compareHash(h1, h2);
+int compareHashWrapper(unsigned char* h1, unsigned char* h2) {
+    if (pCompareHash != NULL) {
+        return pCompareHash(h1, h2);
     }
     else {
         printf("Error: Compare hash function not available!\n");
@@ -91,7 +91,7 @@ void processCommand(char* input) {
     char inputCopy[MAX_INPUT];
     strcpy(inputCopy, input);
 
-    char* token = strtok(input, " \t\n"); // first word
+    char* token = strtok(input, " \t\n");
     if (token == NULL) return;
 
     if (strcmp(token, "upload") == 0) {
@@ -175,21 +175,21 @@ void processCommand(char* input) {
     }
     else if (strcmp(token, "history") == 0) {
         if (strtok(NULL, " \t\n") != NULL) {
-            printf("Syntax error: 'history' takes no parameters.\n", token);
+            printf("Syntax error: 'history' takes no parameters.\n");
         }
         else {
-            printf("Valid command: history\n", token);
+            printf("Valid command: history\n");
             validateList(&history);
-            printList(history);     //print before adding
+            printList(history);
             addNode(&history, inputCopy);
         }
     }
     else if (strcmp(token, "validate") == 0) {
         if (strtok(NULL, " \t\n") != NULL) {
-            printf("Syntax error: 'validate' takes no parameters.\n", token);
+            printf("Syntax error: 'validate' takes no parameters.\n");
         }
         else {
-            printf("Valid command: validate\n", token);
+            printf("Valid command: validate\n");
             validateList(&history);
             addNode(&history, inputCopy);
         }
@@ -197,8 +197,6 @@ void processCommand(char* input) {
     else if (strcmp(token, "quit") == 0) {
         printf("Exiting Program.\n");
         exit(0);
-
-
     }
     else {
         printf("%s is not a valid FML command.\n", token);

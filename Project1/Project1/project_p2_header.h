@@ -2,25 +2,29 @@
 #include <stdio.h>
 
 #define HASH_SIZE 8
-//define node
+
 struct node {
-	char name[256];		//Store full command string
-	unsigned char hash[HASH_SIZE];
-	struct node* next;	//pointer to next node
+    char name[256];
+    unsigned char hash[HASH_SIZE];
+    struct node* next;
 };
 
-//linked list wrapper
 struct LinkedList {
-	int size;
-	struct node* head;
+    int size;
+    struct node* head;
 };
 
-//prototypes
+// Function prototypes
 void initialize(struct LinkedList* list);
 void addNode(struct LinkedList* list, char* command);
 void printList(struct LinkedList list);
 void validateList(struct LinkedList* list);
 
-void computeHash(char* str, char* prevHash, char* outHash);
-void printHash(char* hash);
-int compareHash(char* h1, char* h2);
+// Hash function declarations - these will be implemented via DLL
+void computeHashWrapper(char* str, unsigned char* prevHash, unsigned char* outHash);
+void printHashWrapper(unsigned char* hash);
+int compareHashWrapper(unsigned char* h1, unsigned char* h2);
+
+// DLL loading function
+int loadHashDLL(void);
+void unloadHashDLL(void);
