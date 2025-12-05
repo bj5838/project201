@@ -1,10 +1,91 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <string.h>
+#include <windows.h>  // Add this for DLL loading
 #include "project_p2_header.h"
 #define MAX_INPUT 256
 
+// Function pointer types for DLL functions
+typedef void (*ComputeHashFunc)(char*, char*, char*);
+typedef void (*PrintHashFunc)(char*);
+typedef int (*CompareHashFunc)(char*, char*);
+
+// Global function pointers
+ComputeHashFunc computeHash = NULL;
+PrintHashFunc printHash = NULL;
+CompareHashFunc compareHash = NULL;
+
+// DLL handle
+HMODULE hashDllHandle = NULL;
+
+// Function to load the DLL
+int loadHashDLL() {
+    // Try to load the DLL
+    hashDllHandle = LoadLibrary("HashFunctionDLL.dll");
+
+    if (hashDllHandle == NULL) {
+        DWORD error = GetLastError();
+        printf("Error: Failed to load HashFunctionDLL.dll. Error code: %lu\n", error);
+        printf("Make sure HashFunctionDLL.dll is in the same directory as this executable.\n");
+        return 0;
+    }
+
+    // Get function addresses
+    computeHash = (ComputeHashFunc)GetProcAddress(hashDllHandle, "computeHash");
+    printHash = (PrintHashFunc)GetProcAddress(hashDllHandle, "printHash");
+    compareHash = (CompareHashFunc)GetProcAddress(hashDllHandle, "compareHash");
+
+    if (computeHash == NULL || printHash == NULL || compareHash == NULL) {
+        printf("Error: Failed to find required functions in HashFunctionDLL.dll\n");
+        FreeLibrary(hashDllHandle);
+        hashDllHandle = NULL;
+        return 0;
+    }
+
+    printf("Hash function DLL loaded successfully.\n");
+    return 1;
+}
+
+// Unload the DLL when done
+void unloadHashDLL() {
+    if (hashDllHandle != NULL) {
+        FreeLibrary(hashDllHandle);
+        hashDllHandle = NULL;
+        printf("Hash function DLL unloaded.\n");
+    }
+}
+
 struct LinkedList history; // global history list
+
+// Wrapper functions that use the DLL
+void computeHashWrapper(char* str, char* prevHash, char* outHash) {
+    if (computeHash != NULL) {
+        computeHash(str, prevHash, outHash);
+    }
+    else {
+        printf("Error: Hash function not available!\n");
+        exit(1);
+    }
+}
+
+void printHashWrapper(char* hash) {
+    if (printHash != NULL) {
+        printHash(hash);
+    }
+    else {
+        printf("Error: Print hash function not available!\n");
+    }
+}
+
+int compareHashWrapper(char* h1, char* h2) {
+    if (compareHash != NULL) {
+        return compareHash(h1, h2);
+    }
+    else {
+        printf("Error: Compare hash function not available!\n");
+        return 0;
+    }
+}
 
 void processCommand(char* input) {
     char inputCopy[MAX_INPUT];
@@ -18,9 +99,11 @@ void processCommand(char* input) {
         char* remote = strtok(NULL, " \t\n");
         if (!local || !remote || strtok(NULL, " \t\n")) {
             printf("Syntax error: upload <local filename> <remote filename>\n");
-        }else if (strtok(NULL, " \t\n") != NULL) {
+        }
+        else if (strtok(NULL, " \t\n") != NULL) {
             printf("Syntax error: upload <local filename> <remote filename>\n");
-        }else {
+        }
+        else {
             printf("Valid command: upload\n");
             addNode(&history, inputCopy);
         }
@@ -33,7 +116,8 @@ void processCommand(char* input) {
         }
         else if (strtok(NULL, " \t\n") != NULL) {
             printf("Syntax error: download <remote filename> <local filename>\n");
-        }else {
+        }
+        else {
             printf("Valid command: download\n");
             addNode(&history, inputCopy);
         }
@@ -43,7 +127,8 @@ void processCommand(char* input) {
         char* file = strtok(NULL, " \t\n");
         if (!scope || !file) {
             printf("Syntax error: delete <local|remote> <filename>\n");
-        }else if (strcmp(scope, "local") != 0 && strcmp(scope, "remote") != 0) {
+        }
+        else if (strcmp(scope, "local") != 0 && strcmp(scope, "remote") != 0) {
             printf("'%s' is not recognized. Valid options are 'local' and 'remote'.\n", scope);
         }
         else if (strtok(NULL, " \t\n") != NULL) {
@@ -109,11 +194,11 @@ void processCommand(char* input) {
             addNode(&history, inputCopy);
         }
     }
-    else if(strcmp(token, "quit") == 0) {
+    else if (strcmp(token, "quit") == 0) {
         printf("Exiting Program.\n");
         exit(0);
-        
-        
+
+
     }
     else {
         printf("%s is not a valid FML command.\n", token);
@@ -122,6 +207,14 @@ void processCommand(char* input) {
 
 int main() {
     char input[MAX_INPUT];
+
+    // Load the DLL
+    if (!loadHashDLL()) {
+        printf("Critical error: Cannot run without hash function DLL.\n");
+        printf("Press any key to exit...\n");
+        getchar();
+        return 1;
+    }
 
     initialize(&history);
 
@@ -133,5 +226,8 @@ int main() {
         }
         processCommand(input);
     }
+
+    // Unload DLL before exit
+    unloadHashDLL();
     return 0;
 }
