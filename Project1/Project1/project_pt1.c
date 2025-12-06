@@ -1,69 +1,120 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <string.h>
-#include <windows.h>
+#include <windows.h>  // For LoadLibrary, GetProcAddress
 #include "project_p2_header.h"
 #define MAX_INPUT 256
 
-// Function pointer types for DLL functions - use correct types
+// Function pointer types
 typedef void (*ComputeHashFunc)(char*, unsigned char*, unsigned char*);
 typedef void (*PrintHashFunc)(unsigned char*);
 typedef int (*CompareHashFunc)(unsigned char*, unsigned char*);
 
-// Global function pointers - use different names
-ComputeHashFunc pComputeHash = NULL;
-PrintHashFunc pPrintHash = NULL;
-CompareHashFunc pCompareHash = NULL;
+// Global pointers to DLL functions
+static ComputeHashFunc pComputeHash = NULL;
+static PrintHashFunc pPrintHash = NULL;
+static CompareHashFunc pCompareHash = NULL;
+static HINSTANCE hHashDLL = NULL;
 
-// DLL handle
-HMODULE hashDllHandle = NULL;
-
-// Function to load the DLL
+// Load DLL function - FIXED: Use wide strings
 int loadHashDLL() {
-    // Try to load the DLL - use TEXT macro for Unicode compatibility
-    hashDllHandle = LoadLibrary(TEXT("HashFunctionDLL.dll"));
+    // Try multiple locations - ALL USING WIDE STRINGS (L prefix)
 
-    if (hashDllHandle == NULL) {
+    // Location 1: Current directory
+    hHashDLL = LoadLibrary(L"Dll1.dll");
+
+    // Location 2: Relative path to Debug folder
+    if (hHashDLL == NULL) {
+        hHashDLL = LoadLibrary(L".\\Debug\\Dll1.dll");
+    }
+
+    // Location 3: Full path
+    if (hHashDLL == NULL) {
+        hHashDLL = LoadLibrary(L"C:\\Users\\Student\\source\\repos\\bj5838\\project201\\Project1\\Dll1\\Debug\\Dll1.dll");
+    }
+
+    // Location 4: Try different naming
+    if (hHashDLL == NULL) {
+        hHashDLL = LoadLibrary(L"Dll1");
+    }
+
+    if (hHashDLL == NULL) {
         DWORD error = GetLastError();
-        printf("Error: Failed to load HashFunctionDLL.dll. Error code: %lu\n", error);
-        printf("Make sure HashFunctionDLL.dll is in the same directory as this executable.\n");
+        printf("ERROR: Failed to load Dll1.dll\n");
+        printf("Error code: %d\n", error);
+
+        // Detailed error messages
+        if (error == 2) {
+            printf("File not found. Check the path.\n");
+        }
+        else if (error == 126) {
+            printf("Module found but missing dependencies or wrong architecture.\n");
+            printf("Common causes:\n");
+            printf("1. DLL needs Visual C++ Redistributable\n");
+            printf("2. Architecture mismatch (x64 vs x86)\n");
+            printf("3. DLL corrupted\n");
+        }
+        else if (error == 193) {
+            printf("Bad EXE format. Both DLL and EXE must be Win32 (x86).\n");
+        }
+
+        printf("Tried locations:\n");
+        printf("1. Dll1.dll (current folder)\n");
+        printf("2. .\\Debug\\Dll1.dll\n");
+        printf("3. Full path\n");
         return 0;
     }
+
+    printf("DLL loaded successfully! Getting functions...\n");
 
     // Get function addresses
-    pComputeHash = (ComputeHashFunc)GetProcAddress(hashDllHandle, "computeHash");
-    pPrintHash = (PrintHashFunc)GetProcAddress(hashDllHandle, "printHash");
-    pCompareHash = (CompareHashFunc)GetProcAddress(hashDllHandle, "compareHash");
+    pComputeHash = (ComputeHashFunc)GetProcAddress(hHashDLL, "computeHash");
+    pPrintHash = (PrintHashFunc)GetProcAddress(hHashDLL, "printHash");
+    pCompareHash = (CompareHashFunc)GetProcAddress(hHashDLL, "compareHash");
+
+    // Check if all functions were found
+    if (pComputeHash == NULL) {
+        printf("ERROR: Could not find computeHash function in DLL\n");
+        printf("Make sure your DLL exports 'computeHash' (case-sensitive)\n");
+    }
+
+    if (pPrintHash == NULL) {
+        printf("ERROR: Could not find printHash function in DLL\n");
+    }
+
+    if (pCompareHash == NULL) {
+        printf("ERROR: Could not find compareHash function in DLL\n");
+    }
 
     if (pComputeHash == NULL || pPrintHash == NULL || pCompareHash == NULL) {
-        printf("Error: Failed to find required functions in HashFunctionDLL.dll\n");
-        FreeLibrary(hashDllHandle);
-        hashDllHandle = NULL;
+        FreeLibrary(hHashDLL);
+        hHashDLL = NULL;
         return 0;
     }
 
-    printf("Hash function DLL loaded successfully.\n");
+    printf("All hash functions loaded successfully from DLL.\n");
     return 1;
 }
 
-// Unload the DLL when done
+// Unload DLL
 void unloadHashDLL() {
-    if (hashDllHandle != NULL) {
-        FreeLibrary(hashDllHandle);
-        hashDllHandle = NULL;
-        printf("Hash function DLL unloaded.\n");
+    if (hHashDLL != NULL) {
+        FreeLibrary(hHashDLL);
+        hHashDLL = NULL;
+        pComputeHash = NULL;
+        pPrintHash = NULL;
+        pCompareHash = NULL;
+        printf("DLL unloaded.\n");
     }
 }
 
-struct LinkedList history; // global history list
-
-// Wrapper functions that use the DLL
+// Wrapper functions that call DLL
 void computeHashWrapper(char* str, unsigned char* prevHash, unsigned char* outHash) {
     if (pComputeHash != NULL) {
         pComputeHash(str, prevHash, outHash);
     }
     else {
-        printf("Error: Hash function not available!\n");
+        printf("FATAL ERROR: Hash function not available!\n");
         exit(1);
     }
 }
@@ -73,7 +124,7 @@ void printHashWrapper(unsigned char* hash) {
         pPrintHash(hash);
     }
     else {
-        printf("Error: Print hash function not available!\n");
+        printf("ERROR: Cannot print hash - function not available\n");
     }
 }
 
@@ -82,16 +133,19 @@ int compareHashWrapper(unsigned char* h1, unsigned char* h2) {
         return pCompareHash(h1, h2);
     }
     else {
-        printf("Error: Compare hash function not available!\n");
+        printf("ERROR: Cannot compare hashes - function not available\n");
         return 0;
     }
 }
 
-void processCommand(char* input) {
+struct LinkedList history;
+
+// FIXED: Added 'static' to fix the warning
+static void processCommand(char* input) {
     char inputCopy[MAX_INPUT];
     strcpy(inputCopy, input);
 
-    char* token = strtok(input, " \t\n");
+    char* token = strtok(input, " \t\n"); // first word
     if (token == NULL) return;
 
     if (strcmp(token, "upload") == 0) {
@@ -180,7 +234,7 @@ void processCommand(char* input) {
         else {
             printf("Valid command: history\n");
             validateList(&history);
-            printList(history);
+            printList(history);     //print before adding
             addNode(&history, inputCopy);
         }
     }
@@ -206,10 +260,12 @@ void processCommand(char* input) {
 int main() {
     char input[MAX_INPUT];
 
-    // Load the DLL
+    // Load DLL first
+    printf("Loading hash function DLL...\n");
     if (!loadHashDLL()) {
-        printf("Critical error: Cannot run without hash function DLL.\n");
-        printf("Press any key to exit...\n");
+        printf("CRITICAL ERROR: Cannot run without hash function DLL.\n");
+        printf("Please copy Dll1.dll to this program's folder and try again.\n");
+        printf("Press Enter to exit...\n");
         getchar();
         return 1;
     }
@@ -222,6 +278,7 @@ int main() {
         if (fgets(input, MAX_INPUT, stdin) == NULL) {
             break;
         }
+        input[strcspn(input, "\n")] = 0; // Remove newline
         processCommand(input);
     }
 
