@@ -44,7 +44,7 @@ extern "C" __declspec(dllexport)
 int compareHash(unsigned char* h1, unsigned char* h2) {
     return memcmp(h1, h2, HASH_SIZE) == 0;
 }
-
+// Comment
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason, LPVOID lpReserved) {
     return TRUE;
 }
